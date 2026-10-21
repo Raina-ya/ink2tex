@@ -1,0 +1,12 @@
+.env
+.env.*
+__pycache__/
+**/__pycache__/
+node_modules/
+data/
+cache/
+data/cache/
+.venv/
+*.py[cod]
+
+work/npm-cache/

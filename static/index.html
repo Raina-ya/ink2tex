@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>手寫公式轉 LaTeX</title>
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="#home" data-page-link="home">Formula Ink</a>
+      <nav class="main-nav" aria-label="主要導覽">
+        <button class="nav-button active" data-page="home" type="button">首頁</button>
+        <button class="nav-button" data-page="library" type="button">常用公式</button>
+        <button class="nav-button" data-page="settings" type="button">個人化設定</button>
+        <button class="nav-button" data-page="training" type="button">訓練模式</button>
+        <button id="developerNavButton" class="nav-button" data-page="developer" type="button" hidden>開發者樣本</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section id="homePage" class="page-view">
+      <div class="page-intro"><div><p class="eyebrow">本機辨識工具</p><h1>手寫公式轉 LaTeX</h1></div><p>書寫、辨識、比對結果，在同一個工作區完成。</p></div>
+      <section id="recognitionApp">
+        <div class="mode-row" role="group" aria-label="辨識模式">
+          <button class="mode-button active" data-mode="formula" type="button">完整公式</button>
+          <button class="mode-button" data-mode="symbol" type="button">單一符號</button>
+          <span id="modeDescription">完整公式只依個人偏好排序，不會因筆畫數剔除結果。</span>
+        </div>
+
+        <div class="workspace-grid">
+          <section class="card canvas-card">
+            <div class="card-heading"><div><h2>手寫區</h2><p>以滑鼠或觸控板書寫。</p></div><span id="strokeCount">0 筆</span></div>
+            <canvas id="canvas" width="900" height="350" aria-label="手寫公式區"></canvas>
+            <div class="actions compact-actions">
+              <button id="undoButton" class="secondary" type="button" disabled>撤回 <kbd>Ctrl</kbd>+<kbd>Z</kbd></button>
+              <button id="clearButton" class="secondary" type="button">清除</button>
+              <button id="recognizeButton" type="button">辨識</button>
+              <button id="moreCandidatesButton" class="secondary" type="button" disabled>更多候選</button>
+            </div>
+            <p id="status" class="status" role="status"></p>
+          </section>
+
+          <section class="card result-workspace">
+            <div class="card-heading"><div><h2>辨識結果</h2><p>此欄可直接編輯 LaTeX。</p></div><button id="copyButton" class="secondary" type="button" disabled>複製</button></div>
+            <div class="editor-tools"><span>點擊符號插入到游標位置。</span><button id="symbolsButton" class="secondary" type="button">插入符號</button></div>
+            <textarea id="latex" rows="3" placeholder="辨識結果會顯示在這裡"></textarea>
+            <div id="preview" aria-live="polite">尚未辨識</div>
+            <div class="actions compact-actions">
+              <button id="useEditedLatexButton" class="secondary" type="button" disabled>套用手動修改</button>
+              <button id="saveFormulaButton" class="secondary" type="button" disabled>存入常用公式</button>
+            </div>
+            <div class="candidates-inline"><div class="subheading"><h2>候選結果</h2><p id="candidateNotice">辨識後可在這裡切換結果。</p></div><div id="sampleRecommendations" class="formula-recommendations"></div><div id="candidates" class="candidate-grid"></div><div id="formulaRecommendations" class="formula-recommendations"></div></div>
+          </section>
+        </div>
+
+        <section id="symbolPanel" class="card symbol-panel" hidden>
+          <div class="card-heading"><div><h2>插入符號</h2><p>點擊符號插入到目前游標位置。</p></div><button id="closeSymbolsButton" class="secondary" type="button">關閉</button></div>
+          <input id="symbolSearch" class="search-input" type="search" placeholder="搜尋符號名稱或 LaTeX，例如 beta、\beta">
+          <div id="symbolCategories" class="symbol-categories"></div>
+        </section>
+      </section>
+    </section>
+
+    <section id="libraryPage" class="page-view" hidden>
+      <div class="page-intro"><div><p class="eyebrow">個人資料庫</p><h1>常用公式</h1></div><button id="newFormulaButton" type="button">新增公式</button></div>
+      <section id="formulaLibrary" class="card">
+        <input id="formulaSearch" class="search-input" type="search" placeholder="搜尋公式名稱、備註或 LaTeX">
+        <div id="formulaLibraryItems" class="formula-library-items"></div>
+        <form id="formulaForm" class="formula-form" hidden>
+          <h2 id="formulaFormTitle">新增常用公式</h2>
+          <input id="formulaId" type="hidden">
+          <label>名稱<input id="formulaName" required maxlength="80" placeholder="例如：尤拉公式"></label>
+          <label>LaTeX<textarea id="formulaLatex" required rows="3" placeholder="e^{i\pi}+1=0"></textarea></label>
+          <label>備註（選填）<input id="formulaNote" maxlength="200" placeholder="例如：複數分析常用"></label>
+          <div class="actions"><button type="submit">儲存公式</button><button id="cancelFormulaEdit" class="secondary" type="button">取消</button></div>
+        </form>
+      </section>
+    </section>
+
+    <section id="settingsPage" class="page-view" hidden>
+      <div class="page-intro"><div><p class="eyebrow">本機個人化</p><h1>個人化設定</h1></div></div>
+      <section id="settings" class="settings card">
+        <div class="card-heading"><div><h2>筆跡與偏好</h2><p>所有資料只儲存在此瀏覽器。</p></div></div>
+        <div class="settings-actions"><button id="retrainButton" type="button">重新訓練</button><button id="clearPreferencesButton" class="secondary" type="button">清除偏好記憶</button></div>
+        <h2 class="section-title">個人筆畫數表</h2><div id="profileView" class="profile-grid">尚未完成個人化訓練。</div>
+        <p id="sampleStoreStats" class="status">樣本庫載入中…</p>
+        <section class="priority-settings"><h2 class="section-title">優先辨識類別</h2><p>可多選並以拖曳順序決定單一符號候選的類別優先度。</p><div id="priorityCategories" class="priority-categories"></div><button id="clearPriorityCategories" class="secondary" type="button">不指定（清除設定）</button></section>
+        <div id="formulaMemoryManager" class="memory-manager"><h2 class="section-title">已記住的公式</h2><p>尚未儲存公式記憶。</p></div>
+      </section>
+
+    </section>
+
+    <section id="trainingPage" class="page-view" hidden>
+      <div class="page-intro"><div><p class="eyebrow">IndexedDB 本機樣本庫</p><h1>符號訓練模式</h1></div><p>每筆確認後立即寫入樣本庫；離開後可從原進度繼續。</p></div>
+      <section id="onboarding" class="onboarding card" hidden>
+        <p class="eyebrow">個人化筆跡訓練</p><h2>依目標符號手寫</h2><p>每個符號預設蒐集十筆。系統會擷取幾何特徵、正規化縮圖與邊緣圖，資料只存在本機 IndexedDB。</p>
+        <div id="trainingTierButtons" class="actions"><button type="button" data-tier="1">第一級（必訓）</button><button type="button" class="secondary" data-tier="2">第二級（應訓）</button><button type="button" class="secondary" data-tier="3">第三級（選訓）</button></div><div id="trainingTarget"><span id="trainingSymbol"></span></div><p id="trainingProgress"></p><div class="progress"><div id="trainingProgressBar"></div></div>
+        <div id="customTrainingSymbols" class="actions" hidden><input id="customTrainingInput" placeholder="輸入選訓符號，例如 \mathcal{L}"><button id="addCustomTrainingButton" class="secondary" type="button">加入第三級</button></div>
+        <canvas id="trainingCanvas" width="700" height="260" aria-label="個人化訓練手寫區"></canvas>
+        <div class="actions"><button id="trainingUndoButton" class="secondary" type="button" disabled>撤回上一筆</button><button id="trainingClearButton" class="secondary" type="button">清除</button><button id="finishSampleButton" type="button">儲存並下一筆</button></div>
+        <p id="trainingGeometry" class="geometry-readout">寫完後會在這裡顯示幾何特徵。</p>
+        <div class="actions"><button id="skipSymbolButton" class="secondary" type="button">暫不訓練此符號</button><button id="skipTrainingButton" class="text-button" type="button">暫停訓練，稍後可從此處續傳</button></div>
+      </section>
+    </section>
+
+    <section id="developerPage" class="page-view" hidden>
+      <div class="page-intro"><div><p class="eyebrow">僅開發者模式</p><h1>種子樣本收集</h1></div><button id="exportSeedButton" type="button">匯出 seed_samples.json</button></div>
+      <section class="card developer-grid">
+        <div><label>目標符號<select id="developerSymbol"></select></label><label>寫法變體（選填）<input id="developerVariant" placeholder="例如 phi_two_stroke"></label><p id="developerProgress" class="status"></p><canvas id="developerCanvas" width="700" height="300" aria-label="開發者種子樣本手寫區"></canvas><div class="actions"><button id="developerUndoButton" class="secondary" type="button" disabled>撤回上一筆</button><button id="developerClearButton" class="secondary" type="button">清除</button><button id="saveDeveloperSampleButton" type="button">儲存新樣本</button></div></div>
+        <aside class="developer-help"><h2>批次收集</h2><p>每個符號建議先收 10 筆；變體名稱只需在寫法不同時填寫。資料暫存在此瀏覽器，匯出後手動覆蓋 <code>static/data/seed_samples.json</code>。</p><p id="developerStats"></p></aside>
+      </section>
+      <section class="card rewrite-panel">
+        <div class="card-heading"><div><h2>重寫指定符號</h2><p>僅修改本次選取的符號；其他符號的樣本與規則庫不會變動。</p></div><button id="backupSamplesButton" class="secondary" type="button">匯出目前樣本庫</button></div>
+        <div id="rewriteSymbolList" class="rewrite-symbol-list">正在載入已收集符號…</div>
+        <label class="rewrite-manual">手動輸入符號（以空白或逗號分隔）<textarea id="rewriteManualSymbols" rows="2" placeholder="例如：\delta, \mu, G"></textarea></label>
+        <fieldset class="rewrite-mode"><legend>重寫模式</legend><label><input type="radio" name="rewriteMode" value="append" checked> 追加舊樣本（預設）</label><label><input type="radio" name="rewriteMode" value="replace"> 完成每個符號後取代其舊樣本</label></fieldset>
+        <div class="actions"><button id="startRewriteButton" type="button">開始重寫</button><button id="resumeRewriteButton" class="secondary" type="button" hidden>繼續未完成重寫</button></div>
+        <p id="rewriteStatus" class="status"></p><p id="rewriteSummary" class="status"></p>
+      </section>
+      <section class="card cleanup-panel">
+        <div class="card-heading"><div><h2>清理重寫前舊樣本</h2><p>僅保留指定 10 個符號各自最新的 10 筆樣本；其他符號不會變動。</p></div><button id="cleanupBackupButton" class="secondary" type="button">先匯出備份</button></div>
+        <div class="actions"><button id="previewCleanupButton" type="button">預覽清理</button><button id="confirmCleanupButton" type="button" hidden>確認並清理</button><button id="undoCleanupButton" class="secondary" type="button" hidden>復原上次清理</button></div>
+        <div id="cleanupPreview" class="cleanup-preview">尚未預覽。</div><p id="cleanupStatus" class="status"></p>
+      </section>
+    </section>
+  </main>
+  <script src="/static/vendor/katex/katex.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
